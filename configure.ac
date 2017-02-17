@@ -20,7 +20,9 @@ dnl Initialize Libtool
 LT_INIT
 
 AC_CONFIG_FILES(Makefile
-                BetterTriangle/Makefile
+                include/Makefile
                 lib/Makefile
-                include/Makefile)
+                BetterTriangle/Makefile
+                data/Makefile
+                data/glsl/Makefile)
 AC_OUTPUT

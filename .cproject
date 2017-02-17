@@ -82,6 +82,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="BetterTriangle"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="data/glsl"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="m4"/>
@@ -95,15 +96,6 @@
 		<project id="TestAutoToolsLibrary.org.eclipse.linuxtools.cdt.autotools.core.projectType.1051581346" name="GNU Autotools" projectType="org.eclipse.linuxtools.cdt.autotools.core.projectType"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467;org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467.;org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gcc.243122990;cdt.managedbuild.tool.gnu.c.compiler.input.1686046522">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467;org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467.;org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1334177384;cdt.managedbuild.tool.gnu.cpp.compiler.input.512353158">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug (GNU)">
 			<resource resourceType="PROJECT" workspacePath="/OpenGLDemos"/>
@@ -111,6 +103,16 @@
 		<configuration configurationName="Build (GNU)">
 			<resource resourceType="PROJECT" workspacePath="/OpenGLDemos"/>
 		</configuration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467;org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467.;org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1334177384;cdt.managedbuild.tool.gnu.cpp.compiler.input.512353158">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467;org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1516978467.;org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gcc.243122990;cdt.managedbuild.tool.gnu.c.compiler.input.1686046522">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 		<buildTargets>
@@ -508,5 +510,4 @@
 			</target>
 		</buildTargets>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

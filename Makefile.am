@@ -1,4 +1,4 @@
-SUBDIRS=lib include BetterTriangle
+SUBDIRS=lib include data BetterTriangle
 ACLOCAL_AMFLAGS=-I m4
 
 # so that we do not require README, NEWS, etc.

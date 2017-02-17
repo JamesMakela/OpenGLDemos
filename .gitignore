@@ -58,6 +58,12 @@
 /lib/Makefile
 /lib/Makefile.in
 
+/data/Makefile
+/data/Makefile.in
+
+/data/glsl/Makefile
+/data/glsl/Makefile.in
+
 /BetterTriangle/Makefile
 /BetterTriangle/Makefile.in
 
