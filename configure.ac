@@ -23,6 +23,8 @@ AC_CONFIG_FILES(Makefile
                 include/Makefile
                 lib/Makefile
                 BetterTriangle/Makefile
+                TextureTriangle/Makefile
                 data/Makefile
-                data/glsl/Makefile)
+                data/glsl/Makefile
+                data/image/Makefile)
 AC_OUTPUT

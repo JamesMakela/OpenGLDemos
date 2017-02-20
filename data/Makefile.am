@@ -1,1 +1,1 @@
-SUBDIRS=glsl
+SUBDIRS=glsl image

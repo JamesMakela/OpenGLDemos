@@ -1,13 +1,12 @@
 //============================================================================
-// Name        : BetterTriangle.cpp
+// Name        : TextureTriangle.cpp
 // Author      : James L. Makela
 // Version     : 0.0.1
 // Copyright   : LGPL v3.0
 // Description : OpenGL triangle in C++ 11 for Legacy OpenGL 2.1.
 //               This is another spinoff of the simple triangle demo.
-//               What we are trying to do is refactor the code into
-//               classes that are easier to use, starting with a
-//               Shader class.
+//               What we are now doing is exploring the methods for
+//               applying textures to our shaders.
 //============================================================================
 
 #include <iostream>
@@ -25,6 +24,9 @@ using std::endl;
 // GLFW
 #include <GLFW/glfw3.h>
 
+// Simple OpenGL Image Library
+#include <SOIL/SOIL.h>
+
 #include "Shader.hpp"
 #include "CmdOptionParser.hpp"
 
@@ -37,21 +39,32 @@ void key_callback(GLFWwindow* window,
 
 int main(int argc, const char **argv)
 {
+    GLenum err;
+
     CmdOptionParser options(argc, argv);
 
-    std::string vertexFile = "glsl/BasicVertexShader.glsl";
-    std::string fragmentFile = "glsl/BasicFragmentShader.glsl";
+    std::string vertexFile = "glsl/TextureVertexShader.glsl";
+    std::string fragmentFile = "glsl/TextureFragmentShader.glsl";
+    // std::string textureFile = "img/Illuminati.jpg";
+    std::string textureFile = "img/container.jpg";
 
     const std::string &filePath = options.getCmdOption("-p");
     if (!filePath.empty()) {
-        vertexFile.insert(0, "/");
+        if (filePath.back() != '/')
+            vertexFile.insert(0, "/");
         vertexFile.insert(0, filePath);
 
-        fragmentFile.insert(0, "/");
+        if (filePath.back() != '/')
+            fragmentFile.insert(0, "/");
         fragmentFile.insert(0, filePath);
+
+        if (filePath.back() != '/')
+            textureFile.insert(0, "/");
+        textureFile.insert(0, filePath);
 
         cout << "Our vertex shader file: " << vertexFile << endl;
         cout << "Our fragment shader file: " << fragmentFile << endl;
+        cout << "Our texture file: " << textureFile << endl;
     }
     else {
         cout << "Usage: " << argv[0]
@@ -70,7 +83,7 @@ int main(int argc, const char **argv)
     ConfigureGLFW();
 
     GLFWwindow* window = glfwCreateWindow(800, 600,
-                                          "OpenGL Color Triangle",
+                                          "OpenGL Textured Triangle",
                                           nullptr, nullptr);
     if (window == nullptr) {
         cout << "Failed to create GLFW window" << endl;
@@ -105,6 +118,52 @@ int main(int argc, const char **argv)
     // Here is where we build and compile our shader program
     Shader ourShader(vertexFile.c_str(), fragmentFile.c_str());
 
+    //
+    // Setup our texture
+    //
+    GLuint texture;
+    glGenTextures(1, &texture);
+    if ((err = glGetError()) != GL_NO_ERROR)
+        cout << "glGenTextures(): error: " << err << endl;
+
+    if (texture != 0)
+        cout << "our texture: " << texture << endl;
+
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);  /* tightly packed*/
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0); /* tightly packed*/
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);   /* tightly packed*/
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   /* tightly aligned*/
+
+    // Set the texture wrapping/filtering options (on the currently bound
+    // texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load and generate the texture
+    width = height = 0;
+    unsigned char *image = SOIL_load_image(textureFile.c_str(),
+                                           &width, &height,
+                                           0, SOIL_LOAD_RGB);
+    if (image == nullptr) {
+        cout << "No loaded image!!" << endl;
+        cout << "SOIL result: " << SOIL_last_result() << endl;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 width, height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, image);
+    if ((err = glGetError()) != GL_NO_ERROR)
+        cout << "glTexImage2D(): error: " << err << endl;
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    if ((err = glGetError()) != GL_NO_ERROR)
+        cout << "glGenerateMipmap(): error: " << err << endl;
+
+    // cleanup our local texture objects
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     // Setup our vertex data
     GLfloat vertices[] = {-0.5f, -0.5f, 0.0f,
                           0.5f, -0.5f, 0.0f,
@@ -114,13 +173,21 @@ int main(int argc, const char **argv)
                         0.f, 1.f, 0.f,
                         0.f, 0.f, 1.f};
 
-    GLuint VAO;
-    GLuint vertexVBO, colorVBO = 0;
+    GLfloat texCoords[] = {0.0f, 0.0f,  // Lower-left corner
+                           1.0f, 0.0f,  // Lower-right corner
+                           0.5f, 1.0f   // Top-center corner
+                           };
+
+    GLuint VAO = 0;
+    GLuint vertexVBO = 0;
+    GLuint colorVBO = 0;
+    GLuint textureVBO = 0;
 
     // Initialize our Vertex Array Object and buffer objects
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &vertexVBO);
     glGenBuffers(1, &colorVBO);
+    glGenBuffers(1, &textureVBO);
 
     // bind our Vertex Array Object first
     glBindVertexArray(VAO);
@@ -147,8 +214,15 @@ int main(int argc, const char **argv)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                           3 * sizeof(GLfloat), (GLvoid*)0);
 
+    glBindBuffer(GL_ARRAY_BUFFER, textureVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords,
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
+                          2 * sizeof(GLfloat), (GLvoid*)0);
+
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     // Note that this is allowed, the call to glVertexAttribPointer
     // registered VBO as the currently bound vertex buffer object so
@@ -172,6 +246,8 @@ int main(int argc, const char **argv)
         //
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         // grab our graphics pipeline context
         ourShader.Use();
