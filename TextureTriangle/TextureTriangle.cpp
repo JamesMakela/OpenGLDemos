@@ -28,6 +28,7 @@ using std::endl;
 #include <SOIL/SOIL.h>
 
 #include "Shader.hpp"
+#include "Texture.hpp"
 #include "CmdOptionParser.hpp"
 
 // forward declarations defined after main()
@@ -45,26 +46,27 @@ int main(int argc, const char **argv)
 
     std::string vertexFile = "glsl/TextureVertexShader.glsl";
     std::string fragmentFile = "glsl/TextureFragmentShader.glsl";
-    // std::string textureFile = "img/Illuminati.jpg";
-    std::string textureFile = "img/container.jpg";
+    std::string textureFile1 = "img/container.jpg";
+    std::string textureFile2 = "img/awesomeface.png";
 
     const std::string &filePath = options.getCmdOption("-p");
     if (!filePath.empty()) {
-        if (filePath.back() != '/')
+        if (filePath.back() != '/') {
             vertexFile.insert(0, "/");
-        vertexFile.insert(0, filePath);
-
-        if (filePath.back() != '/')
             fragmentFile.insert(0, "/");
-        fragmentFile.insert(0, filePath);
+            textureFile1.insert(0, "/");
+            textureFile2.insert(0, "/");
+        }
 
-        if (filePath.back() != '/')
-            textureFile.insert(0, "/");
-        textureFile.insert(0, filePath);
+        vertexFile.insert(0, filePath);
+        fragmentFile.insert(0, filePath);
+        textureFile1.insert(0, filePath);
+        textureFile2.insert(0, filePath);
 
         cout << "Our vertex shader file: " << vertexFile << endl;
         cout << "Our fragment shader file: " << fragmentFile << endl;
-        cout << "Our texture file: " << textureFile << endl;
+        cout << "Our first texture file: " << textureFile1 << endl;
+        cout << "Our second texture file: " << textureFile2 << endl;
     }
     else {
         cout << "Usage: " << argv[0]
@@ -118,51 +120,8 @@ int main(int argc, const char **argv)
     // Here is where we build and compile our shader program
     Shader ourShader(vertexFile.c_str(), fragmentFile.c_str());
 
-    //
     // Setup our texture
-    //
-    GLuint texture;
-    glGenTextures(1, &texture);
-    if ((err = glGetError()) != GL_NO_ERROR)
-        cout << "glGenTextures(): error: " << err << endl;
-
-    if (texture != 0)
-        cout << "our texture: " << texture << endl;
-
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);  /* tightly packed*/
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0); /* tightly packed*/
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);   /* tightly packed*/
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   /* tightly aligned*/
-
-    // Set the texture wrapping/filtering options (on the currently bound
-    // texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Load and generate the texture
-    width = height = 0;
-    unsigned char *image = SOIL_load_image(textureFile.c_str(),
-                                           &width, &height,
-                                           0, SOIL_LOAD_RGB);
-    if (image == nullptr) {
-        cout << "No loaded image!!" << endl;
-        cout << "SOIL result: " << SOIL_last_result() << endl;
-    }
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                 width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, image);
-    if ((err = glGetError()) != GL_NO_ERROR)
-        cout << "glTexImage2D(): error: " << err << endl;
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    if ((err = glGetError()) != GL_NO_ERROR)
-        cout << "glGenerateMipmap(): error: " << err << endl;
-
-    // cleanup our local texture objects
-    SOIL_free_image_data(image);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    Texture ourTexture(textureFile1.c_str());
 
     // Setup our vertex data
     GLfloat vertices[] = {-0.5f, -0.5f, 0.0f,
@@ -247,7 +206,8 @@ int main(int argc, const char **argv)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        // grab our texture
+        ourTexture.Use();
 
         // grab our graphics pipeline context
         ourShader.Use();

@@ -18,32 +18,39 @@
 //               sub-classing this Shader, as it will be difficult
 //               to anticipate what a new Shader design may need.
 //============================================================================
+#include <iostream>
+
+// this is just to make printing stuff a bit more concise
+// everything else in std, we can call explicitly
+using std::cout;
+using std::cin;
+using std::endl;
 
 #include "Shader.hpp"
 
 
 Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath)
 {
-    std::string vShaderCode = this->ReadSourceFile(vertexPath);
+    std::string vShaderCode = ReadFile(vertexPath);
     if (vShaderCode.length() == 0)
         return;
 
-    std::string fShaderCode = this->ReadSourceFile(fragmentPath);
+    std::string fShaderCode = ReadFile(fragmentPath);
     if (fShaderCode.length() == 0)
         return;
 
     // 2. Compile shaders
-    GLuint vertex = this->CreateVertexShader(vShaderCode.c_str());
+    GLuint vertex = CreateVertexShader(vShaderCode.c_str());
     if (vertex == 0)
         return;
 
-    GLuint fragment = this->CreateFragmentShader(fShaderCode.c_str());
+    GLuint fragment = CreateFragmentShader(fShaderCode.c_str());
     if (fragment == 0) {
         glDeleteShader(vertex);
         return;
     }
 
-    this->CreateShaderProgram();
+    CreateShaderProgram();
 
     // Delete the shaders as they're linked into our program now
     // and no longer necessery
@@ -52,15 +59,15 @@ Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath)
 }
 
 
-std::string Shader::ReadSourceFile(const GLchar *path)
+std::string Shader::ReadFile(const GLchar *path)
 {
     std::string codeBuffer = "";
 
     std::ifstream sourceFile(path);
     if (!sourceFile) {
         // The file does not exist. Stop.
-        std::cout << "ERROR::SHADER::FILE_DOES_NOT_EXIST" << std::endl
-                  << "\tFile Path: " << path << std::endl;
+        cout << "ERROR::SHADER::FILE_DOES_NOT_EXIST" << endl
+             << "\tFile Path: " << path << endl;
         return codeBuffer;
     }
 
@@ -79,10 +86,9 @@ std::string Shader::ReadSourceFile(const GLchar *path)
         codeBuffer = fileStream.str();
     }
     catch(const std::ifstream::failure &e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ"
-                  << std::endl
-                  << "\tFile Path: " << path << std::endl
-                  << "\tError: " << e.what() << std::endl;
+        cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << endl
+             << "\tFile Path: " << path << endl
+             << "\tError: " << e.what() << endl;
         return codeBuffer;
     }
 
@@ -104,8 +110,8 @@ GLuint Shader::CreateVertexShader(const GLchar *code) {
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n\t"
-                  << infoLog << std::endl;
+        cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n\t"
+             << infoLog << endl;
         return 0;
     }
     else {
@@ -127,8 +133,8 @@ GLuint Shader::CreateFragmentShader(const GLchar *code) {
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n\t"
-                  << infoLog << std::endl;
+        cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n\t"
+             << infoLog << endl;
         return 0;
     }
     else {
@@ -155,8 +161,8 @@ void Shader::CreateShaderProgram() {
     glGetProgramiv(this->Program, GL_LINK_STATUS, &success);
     if(!success) {
         glGetProgramInfoLog(this->Program, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n\t"
-                  << infoLog << std::endl;
+        cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n\t"
+             << infoLog << endl;
         this->Program = 0;
     }
 }

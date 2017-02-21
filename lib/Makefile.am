@@ -13,9 +13,12 @@ lib_LTLIBRARIES = libOpenGLCommon.la libCPPMisc.la
 #    - age:      The difference between the newest and oldest interfaces
 #                that the library implements. 
 #######################################
-libOpenGLCommon_la_SOURCES = Shader.cpp
+libOpenGLCommon_la_SOURCES = Shader.cpp \
+                             Texture.cpp
 
 libOpenGLCommon_la_LDFLAGS = -version-info 1:0:0
+
+libOpenGLCommon_la_LIBADD = -lGL -lGLEW -lglfw -lSOIL
 
 libOpenGLCommon_la_CPPFLAGS = -I$(top_srcdir)/include
 

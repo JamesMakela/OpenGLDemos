@@ -38,7 +38,7 @@ public:
     // Constructor reads and builds the shader
     Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
 
-    std::string ReadSourceFile(const GLchar *path);
+    std::string ReadFile(const GLchar *path);
     GLuint CreateVertexShader(const GLchar *code);
     GLuint CreateFragmentShader(const GLchar *code);
     void CreateShaderProgram();

@@ -24,7 +24,7 @@ TextureTriangle_LDADD = $(top_srcdir)/lib/libOpenGLCommon.la \
 
 # Linker options for a.out
 TextureTriangle_LDFLAGS = -rpath `cd $(top_srcdir);pwd`/lib/.libs \
-						  -lGL -lGLEW -lglfw -lSOIL
+                          -lGL -lGLEW -lglfw -lSOIL
 
 # Compiler options for a.out
 TextureTriangle_CPPFLAGS = -I$(top_srcdir)/include
