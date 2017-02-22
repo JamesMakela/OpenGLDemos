@@ -195,3 +195,18 @@ GLenum Texture::SetTextureWrappingModes()
 
     return err;
 }
+
+
+void Texture::Use(GLuint texture_unit_idx = 0, GLuint program = 0)
+{
+    std::string uniformName = "ourTexture" + std::to_string(texture_unit_idx);
+
+    // Activate the texture unit first before binding texture
+    glActiveTexture(GL_TEXTURE0 + texture_unit_idx);
+    glBindTexture(GL_TEXTURE_2D, this->TextureID);
+
+
+    glUniform1i(glGetUniformLocation(program, uniformName.c_str()),
+                texture_unit_idx);
+}
+

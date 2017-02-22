@@ -48,7 +48,7 @@ public:
     GLenum SetTextureWrappingModes();
 
     // Use the texture
-    void Use() { glBindTexture(GL_TEXTURE_2D, this->TextureID); }
+    void Use(GLuint texture_unit_idx, GLuint program);
 
 private:
     GLuint vertexShader = 0;

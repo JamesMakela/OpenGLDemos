@@ -120,8 +120,9 @@ int main(int argc, const char **argv)
     // Here is where we build and compile our shader program
     Shader ourShader(vertexFile.c_str(), fragmentFile.c_str());
 
-    // Setup our texture
-    Texture ourTexture(textureFile1.c_str());
+    // Setup our textures
+    Texture ourTexture1(textureFile1.c_str());
+    Texture ourTexture2(textureFile2.c_str());
 
     // Setup our vertex data
     GLfloat vertices[] = {-0.5f, -0.5f, 0.0f,
@@ -206,12 +207,13 @@ int main(int argc, const char **argv)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // grab our texture
-        ourTexture.Use();
-
         // grab our graphics pipeline context
         ourShader.Use();
         glBindVertexArray(VAO);
+
+        // grab our textures
+        ourTexture1.Use(0, ourShader.Program);
+        ourTexture2.Use(1, ourShader.Program);
 
         // draw our colored triangle
         glDrawArrays(GL_TRIANGLES, 0, 3);

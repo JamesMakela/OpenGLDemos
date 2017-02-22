@@ -18,5 +18,8 @@ void main() {
     color = vertex_color;
     gl_Position = vec4(position, 1.0);
 
-    TexCoord = texCoord;
+    // We are using SOIL_load_image, which creates a texture
+    // with origin in the top-left instead of bottom-left.
+    // So we have to flip it.
+    TexCoord = vec2(texCoord.x, 1.0f - texCoord.y);
 }
