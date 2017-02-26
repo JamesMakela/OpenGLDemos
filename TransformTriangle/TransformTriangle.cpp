@@ -24,6 +24,28 @@ using std::endl;
 // GLFW
 #include <GLFW/glfw3.h>
 
+// We will initially use GLM for our OpenGL Mathematics.
+// But since this is a bit of a learning exercise, I would also
+// like to try out the Eigen Math library to see how it can
+// be used with OpenGL.
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
+#include <Eigen/Dense>
+using Eigen::Affine3f;
+using Eigen::Translation3f;
+using Eigen::AngleAxisf;
+using Eigen::Vector3f;
+using Eigen::Scaling;
+
+// GLM has a conversion routine from degrees to radians,
+// but Eigen does not seem to have one.
+// Let's just build a simple one so we don't have to rely upon
+// GLM if we are using Eigen
+#define to_radians(degrees) (degrees / 180.0) * M_PI
+
 // Simple OpenGL Image Library
 #include <SOIL/SOIL.h>
 
@@ -44,7 +66,7 @@ int main(int argc, const char **argv)
 
     CmdOptionParser options(argc, argv);
 
-    std::string vertexFile = "glsl/TextureVertexShader.glsl";
+    std::string vertexFile = "glsl/TransTexVertexShader.glsl";
     std::string fragmentFile = "glsl/TextureFragmentShader.glsl";
     std::string textureFile1 = "img/container.jpg";
     std::string textureFile2 = "img/awesomeface.png";
@@ -138,12 +160,34 @@ int main(int argc, const char **argv)
                            0.5f, 1.0f   // Top-center corner
                            };
 
+    // let's just try some of the math constructs
+    // First the Eigen stuff
+    Affine3f rot, scale, eigenTrans;
+
+    rot = AngleAxisf(to_radians(45.0f), Vector3f::UnitZ());
+    scale = Scaling(Vector3f(0.5, 0.5, 0.5));
+    eigenTrans = rot * scale;
+
+    cout << "Our Eigen matrix:\n"<< eigenTrans.matrix() << endl;
+    cout << "Our Eigen dataptr:\n"<< eigenTrans.data() << endl;
+
+    // next the GLM stuff
+    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 trans;
+
+    trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0, 0.0, 1.0));
+    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    vec = trans * vec;
+
+    cout << "Our GLM matrix values: " << glm::to_string(trans) << endl;
+    cout << "Our GLM vector values: " << glm::to_string(vec) << endl;
+
+    // Initialize our Vertex Array Object and buffer objects
     GLuint VAO = 0;
     GLuint vertexVBO = 0;
     GLuint colorVBO = 0;
     GLuint textureVBO = 0;
 
-    // Initialize our Vertex Array Object and buffer objects
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &vertexVBO);
     glGenBuffers(1, &colorVBO);
@@ -196,10 +240,19 @@ int main(int argc, const char **argv)
     glBindVertexArray(0);
 
     // our main loop
+    GLfloat prevTime = glfwGetTime();
     while(!glfwWindowShouldClose(window))
     {
         // check input events(kbd, mouse, etc.)
         glfwPollEvents();
+
+        // get the time elapsed since last iteration
+        GLfloat deltaTime = glfwGetTime() - prevTime;
+        prevTime += deltaTime;
+
+        // rotate the image at about 60 degrees/sec
+        eigenTrans *= AngleAxisf(to_radians(deltaTime * 60.0f),
+                                 Vector3f::UnitZ());
 
         //
         // rendering routines
@@ -210,6 +263,9 @@ int main(int argc, const char **argv)
         // grab our graphics pipeline context
         ourShader.Use();
         glBindVertexArray(VAO);
+
+        // set our transformation matrix as a uniform
+        ourShader.UseTransform(eigenTrans.data(), 0);
 
         // grab our textures
         ourShader.UseTexture(ourTexture1.ID, 0);

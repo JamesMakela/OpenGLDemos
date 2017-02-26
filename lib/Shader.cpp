@@ -166,3 +166,38 @@ void Shader::CreateShaderProgram() {
         this->Program = 0;
     }
 }
+
+
+void Shader::UseTexture(GLuint texture = 0, GLuint textureUnitIdx = 0)
+{
+    std::string uniformName = "ourTexture" + std::to_string(textureUnitIdx);
+
+    // Activate the texture unit first before binding texture
+    glActiveTexture(GL_TEXTURE0 + textureUnitIdx);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glUniform1i(glGetUniformLocation(this->Program, uniformName.c_str()),
+                textureUnitIdx);
+}
+
+
+void Shader::UseTransform(const GLfloat *transform,
+                          GLuint transformIdx = 0)
+{
+    if (transform == nullptr) {
+        cout << "ERROR::SHADER::USETRANSFORM::NULLPTR\n\t"
+             << "invalid pointer to transform!" << endl;
+        return;
+    }
+
+    std::string uniformName = "transform" + std::to_string(transformIdx);
+
+    // set our transformation matrix as a uniform
+    GLuint transformLoc = glGetUniformLocation(this->Program,
+                                               uniformName.c_str());
+
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform);
+}
+
+
+

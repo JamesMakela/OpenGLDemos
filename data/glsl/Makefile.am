@@ -5,4 +5,5 @@ glsldir = $(prefix)/$(PACKAGE)/res/glsl
 dist_glsl_DATA = BasicFragmentShader.glsl \
                  BasicVertexShader.glsl \
                  TextureFragmentShader.glsl \
-                 TextureVertexShader.glsl
+                 TextureVertexShader.glsl \
+                 TransTexVertexShader.glsl

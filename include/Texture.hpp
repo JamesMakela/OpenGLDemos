@@ -36,7 +36,7 @@
 class Texture
 {
 public:
-    GLuint TextureID = 0;
+    GLuint ID = 0;
 
     // Constructor reads and builds the texture
     Texture(const char *imagePath);
@@ -46,9 +46,6 @@ public:
     GLuint GenTexture();
     GLenum SetPixelStorageModes();
     GLenum SetTextureWrappingModes();
-
-    // Use the texture
-    void Use(GLuint texture_unit_idx, GLuint program);
 
 private:
     GLuint vertexShader = 0;
