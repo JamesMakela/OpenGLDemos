@@ -15,9 +15,11 @@
 #endif
 
 uniform mat4 transform0;
+uniform mat4 transform1;
+uniform mat4 transform2;
 
 void main() {
-    gl_Position = transform0 * vec4(position, 1.0);
+    gl_Position = transform2 * transform1 * transform0 * vec4(position, 1.0);
 
     color = vertex_color;
 

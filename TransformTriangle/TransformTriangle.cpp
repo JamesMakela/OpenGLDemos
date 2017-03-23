@@ -33,7 +33,9 @@ using std::endl;
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+
 #include <Eigen/Dense>
+using Eigen::Matrix4f;
 using Eigen::Affine3f;
 using Eigen::Translation3f;
 using Eigen::AngleAxisf;
@@ -44,7 +46,7 @@ using Eigen::Scaling;
 // but Eigen does not seem to have one.
 // Let's just build a simple one so we don't have to rely upon
 // GLM if we are using Eigen
-#define to_radians(degrees) (degrees / 180.0) * M_PI
+#define to_radians(degrees) ((degrees / 180.0) * M_PI)
 
 // Simple OpenGL Image Library
 #include <SOIL/SOIL.h>
@@ -147,9 +149,15 @@ int main(int argc, const char **argv)
     Texture ourTexture2(textureFile2.c_str());
 
     // Setup our vertex data
-    GLfloat vertices[] = {-0.5f, -0.5f, 0.0f,
-                          0.5f, -0.5f, 0.0f,
-                          0.0f,  0.5f, 0.0f};
+    GLfloat vertices[] = { 0.5f,  0.5f, 0.0f,
+                           0.5f, -0.5f, 0.0f,
+                          -0.5f, -0.5f, 0.0f,
+                          -0.5f,  0.5f, 0.0f
+                          };
+
+    GLuint indices[] = {0, 1, 3,  // 1st triangle
+                        1, 2, 3   // 2nd triangle
+                        };
 
     GLfloat colors[] = {1.f, 0.f, 0.f,
                         0.f, 1.f, 0.f,
@@ -157,39 +165,62 @@ int main(int argc, const char **argv)
 
     GLfloat texCoords[] = {0.0f, 0.0f,  // Lower-left corner
                            1.0f, 0.0f,  // Lower-right corner
-                           0.5f, 1.0f   // Top-center corner
+                           1.0f, 1.0f,  // Top-right corner
+                           0.0f, 1.0f   // Top-left corner
                            };
 
-    // let's just try some of the math constructs
-    // First the Eigen stuff
-    Affine3f rot, scale, eigenTrans;
+    // Setup our transformations. We are using Eigen here.
+    Affine3f rot, scale, modelTrans, viewTrans;
+    Matrix4f projectionTrans;
 
-    rot = AngleAxisf(to_radians(45.0f), Vector3f::UnitZ());
-    scale = Scaling(Vector3f(0.5, 0.5, 0.5));
-    eigenTrans = rot * scale;
+    // Define our model transformation
+    rot = AngleAxisf(to_radians(-65.0f), Vector3f::UnitX());
+    //scale = Scaling(Vector3f(0.8, 0.8, 0.8));
+    modelTrans = rot;
 
-    cout << "Our Eigen matrix:\n"<< eigenTrans.matrix() << endl;
-    cout << "Our Eigen dataptr:\n"<< eigenTrans.data() << endl;
+    // Define our view transformation
+    viewTrans = Translation3f(Vector3f(0.0, 0.0, -2.0));
 
-    // next the GLM stuff
-    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 trans;
+    // Define our projection transformation
+    //
+    // This seems odd.  I looked at the GLM code for the perspective
+    // transformation, and it does nothing to convert the FOV (in degrees)
+    // to radians.  Why not???  It seems you would need to use radians
+    // on any trig functions you were using in order to get valid results.
+    GLfloat fov = to_radians(45.0f);
+    GLfloat aspect = (float)width / (float)height;
 
-    trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0, 0.0, 1.0));
-    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-    vec = trans * vec;
+    GLfloat tanHalfFovy = tan(fov / 2.0);
+    GLfloat xScale = 1.0 / (aspect * tanHalfFovy);
+    GLfloat yScale = 1.0 / tanHalfFovy;
+    GLfloat near = 0.1f, far = 100.0f;
 
-    cout << "Our GLM matrix values: " << glm::to_string(trans) << endl;
-    cout << "Our GLM vector values: " << glm::to_string(vec) << endl;
+    // using the comma initializer just makes it easier to read.
+    projectionTrans << xScale, 0, 0, 0,
+                       0, yScale, 0, 0,
+                       0, 0, -(far + near) / (far - near), -1,
+                       0, 0, -2 * far * near / (far - near), 0;
+    projectionTrans.transposeInPlace();
+
+    cout << "Our Model matrix:\n"<< modelTrans.matrix() << endl;
+    cout << "Our View matrix:\n"<< viewTrans.matrix() << endl;
+    cout << "Our Projection matrix:\n"<< projectionTrans.matrix() << endl;
+
+    //glm::mat4 glmProjection;
+    //glmProjection = glm::perspective(45.0f, (float)width / (float)height,
+    //                                 0.1f, 100.0f);
+    //cout << "GLM Projection:\n" << glm::to_string(glmProjection) << endl;
 
     // Initialize our Vertex Array Object and buffer objects
     GLuint VAO = 0;
     GLuint vertexVBO = 0;
+    GLuint vertexEBO = 0;
     GLuint colorVBO = 0;
     GLuint textureVBO = 0;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &vertexVBO);
+    glGenBuffers(1, &vertexEBO);
     glGenBuffers(1, &colorVBO);
     glGenBuffers(1, &textureVBO);
 
@@ -209,6 +240,11 @@ int main(int argc, const char **argv)
     glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+                 GL_STATIC_DRAW);
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                           3 * sizeof(GLfloat), (GLvoid*)0);
 
@@ -251,7 +287,7 @@ int main(int argc, const char **argv)
         prevTime += deltaTime;
 
         // rotate the image at about 60 degrees/sec
-        eigenTrans *= AngleAxisf(to_radians(deltaTime * 60.0f),
+        modelTrans *= AngleAxisf(to_radians(deltaTime * 60.0f),
                                  Vector3f::UnitZ());
 
         //
@@ -264,15 +300,21 @@ int main(int argc, const char **argv)
         ourShader.Use();
         glBindVertexArray(VAO);
 
-        // set our transformation matrix as a uniform
-        ourShader.UseTransform(eigenTrans.data(), 0);
+        // set our transformation matrices as uniforms
+        ourShader.UseTransform(modelTrans.data(), 0);
+        ourShader.UseTransform(viewTrans.data(), 1);
+
+        // ourShader.UseTransform(glm::value_ptr(glmProjection), 2);
+        ourShader.UseTransform(projectionTrans.data(), 2);
+
 
         // grab our textures
         ourShader.UseTexture(ourTexture1.ID, 0);
         ourShader.UseTexture(ourTexture2.ID, 1);
 
         // draw our colored triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // cleanup
         glBindVertexArray(0);
