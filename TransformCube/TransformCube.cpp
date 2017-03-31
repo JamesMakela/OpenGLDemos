@@ -112,7 +112,7 @@ int main(int argc, const char **argv)
     ConfigureGLFW();
 
     GLFWwindow* window = glfwCreateWindow(800, 600,
-                                          "OpenGL Textured Triangle",
+                                          "OpenGL Textured Cube",
                                           nullptr, nullptr);
     if (window == nullptr) {
         cout << "Failed to create GLFW window" << endl;
