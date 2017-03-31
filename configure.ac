@@ -25,6 +25,7 @@ AC_CONFIG_FILES(Makefile
                 BetterTriangle/Makefile
                 TextureTriangle/Makefile
                 TransformTriangle/Makefile
+                TransformCube/Makefile
                 data/Makefile
                 data/glsl/Makefile
                 data/image/Makefile)

@@ -1,7 +1,8 @@
 SUBDIRS = lib include data \
           BetterTriangle \
           TextureTriangle \
-          TransformTriangle
+          TransformTriangle \
+          TransformCube
 
 ACLOCAL_AMFLAGS=-I m4
 
