@@ -42,8 +42,9 @@ public:
     GLuint CreateVertexShader(const GLchar *code);
     GLuint CreateFragmentShader(const GLchar *code);
     void CreateShaderProgram();
-    void UseTexture(GLuint texture, GLuint textureUnitIdx);
-    void UseTransform(const GLfloat *transform, GLuint transformIdx);
+
+    void UseTexture(GLuint texture = 0, GLuint textureUnitIdx = 0);
+    void UseTransform(const GLfloat *transform, GLuint transformIdx = 0);
 
     // Use the program
     void Use() { glUseProgram(this->Program); }

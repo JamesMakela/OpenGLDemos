@@ -3,10 +3,10 @@
 // Author      : James L. Makela
 // Version     : 0.1.1
 // Copyright   : LGPL v3.0
-// Description : What we are trying to do is refactor the code into
-//               code into classes that are easier to use.
-//               In addition to the Shaders, it seems that a Texture
-//               class would simplify things a bit.
+// Description : What we are trying to do is refactor the OpenGL demo code
+//               into classes that are easier to use.  In addition to the
+//               Shaders, it seems that a Texture class would simplify things
+//               a bit.
 //               This Texture class tries to take the OpenGL texture
 //               generation and binding methods and package them into
 //               something that is more easy to use.

@@ -33,7 +33,6 @@ using std::endl;
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-
 #include <Eigen/Dense>
 using Eigen::Matrix4f;
 using Eigen::Affine3f;
@@ -42,18 +41,15 @@ using Eigen::AngleAxisf;
 using Eigen::Vector3f;
 using Eigen::Scaling;
 
-// GLM has a conversion routine from degrees to radians,
-// but Eigen does not seem to have one.
-// Let's just build a simple one so we don't have to rely upon
-// GLM if we are using Eigen
-#define to_radians(degrees) ((degrees / 180.0) * M_PI)
-
 // Simple OpenGL Image Library
 #include <SOIL/SOIL.h>
 
+#include "CmdOptionParser.hpp"
+#include "OGLCommon.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include "CmdOptionParser.hpp"
+#include "Camera.hpp"
+#include "KeyHandler.hpp"
 
 // forward declarations defined after main()
 // I like organizing my functions in a top-down fashion
@@ -61,9 +57,17 @@ void ConfigureGLFW();
 void report_error(int code, const char * description);
 void key_callback(GLFWwindow* window,
                   int key, int scancode, int action, int mode);
+void handle_keys();
+
+// set the camera as a global
+Camera camera;
+
+// set the key handler as a global
+KeyHandler keyHandler;
 
 // quick & dirty flag to tell the application whether to animate or not
-bool stopMoving = false;
+bool animateCube = true;
+
 
 int main(int argc, const char **argv)
 {
@@ -213,46 +217,35 @@ int main(int argc, const char **argv)
                         };
 
     // Setup our transformations. We are using Eigen here.
-    Affine3f rot, scale, modelTrans, viewTrans;
-    Matrix4f projectionTrans;
+    Affine3f rot, scale, modelTrans;
 
     // Define our model transformation
     rot = AngleAxisf(to_radians(-65.0f), Vector3f::UnitX());
     //scale = Scaling(Vector3f(0.8, 0.8, 0.8));
     modelTrans = rot;
 
-    // Define our view transformation
-    viewTrans = Translation3f(Vector3f(0.0, 0.0, -3.0));
+    // Define our view and projection transformation
+    camera.lookAt(Vector3f(0.0, 0.0, 3.0),
+                  Vector3f(0.0, 0.0, 0.0),
+                  Vector3f(0.0, 1.0, 0.0));
 
-    // Define our projection transformation
-    //
-    // This seems odd.  I looked at the GLM code for the perspective
-    // transformation, and it does nothing to convert the FOV (in degrees)
-    // to radians.  Why not???  It seems you would need to use radians
-    // on any trig functions you were using in order to get valid results.
-    GLfloat fov = to_radians(45.0f);
-    GLfloat aspect = (float)width / (float)height;
-
-    GLfloat tanHalfFovy = tan(fov / 2.0);
-    GLfloat xScale = 1.0 / (aspect * tanHalfFovy);
-    GLfloat yScale = 1.0 / tanHalfFovy;
-    GLfloat near = 0.1f, far = 100.0f;
-
-    // using the comma initializer just makes it easier to read.
-    projectionTrans << xScale, 0, 0, 0,
-                       0, yScale, 0, 0,
-                       0, 0, -(far + near) / (far - near), -1,
-                       0, 0, -2 * far * near / (far - near), 0;
-    projectionTrans.transposeInPlace();
+    camera.setPerspective(45.0f, (float)width, (float)height, 0.1f, 100.0f);
 
     cout << "Our Model matrix:\n"<< modelTrans.matrix() << endl;
-    cout << "Our View matrix:\n"<< viewTrans.matrix() << endl;
-    cout << "Our Projection matrix:\n"<< projectionTrans.matrix() << endl;
+    cout << "Our View matrix:\n"<< camera.View() << endl;
+    cout << "Our Projection matrix:\n"<< camera.Projection() << endl;
 
-    //glm::mat4 glmProjection;
-    //glmProjection = glm::perspective(45.0f, (float)width / (float)height,
-    //                                 0.1f, 100.0f);
-    //cout << "GLM Projection:\n" << glm::to_string(glmProjection) << endl;
+    // glm::mat4 glmProjection;
+    // glmProjection = glm::perspective(glm::radians(45.0f),
+    //                                  (float)width / (float)height,
+    //                                  0.1f, 100.0f);
+    // cout << "GLM Projection:\n" << glm::to_string(glmProjection) << endl;
+
+    // glm::mat4 glmView;
+    // glmView = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),
+    //                       glm::vec3(0.0f, 0.0f, 0.0f),
+    //                       glm::vec3(0.0f, 1.0f, 0.0f));
+    // cout << "glm::lookAt view:\n" << glm::to_string(glmView) << endl;
 
     // Initialize our Vertex Array Object and buffer objects
     GLuint VAO = 0;
@@ -324,12 +317,13 @@ int main(int argc, const char **argv)
     {
         // check input events(kbd, mouse, etc.)
         glfwPollEvents();
+        handle_keys();
 
         // get the time elapsed since last iteration
         GLfloat deltaTime = glfwGetTime() - prevTime;
         prevTime += deltaTime;
 
-        if (stopMoving == false) {
+        if (animateCube) {
             // rotate the image at about 60 degrees/sec
             modelTrans *= AngleAxisf(to_radians(deltaTime * 60.0f),
                                      Vector3f::UnitZ())
@@ -354,10 +348,8 @@ int main(int argc, const char **argv)
         tempModelTrans = modelTrans;
 
         ourShader.UseTransform(tempModelTrans.data(), 0);
-        ourShader.UseTransform(viewTrans.data(), 1);
-
-        // ourShader.UseTransform(glm::value_ptr(glmProjection), 2);
-        ourShader.UseTransform(projectionTrans.data(), 2);
+        ourShader.UseTransform(camera.View().data(), 1);
+        ourShader.UseTransform(camera.Projection().data(), 2);
 
 
         // grab our textures
@@ -426,15 +418,31 @@ void report_error(int code, const char * description)
 void key_callback(GLFWwindow* window,
                   int key, int scancode, int action, int mode)
 {
-    if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_ESCAPE) {
-            // When a user presses the escape key, we set the WindowShouldClose
-            // property to true, closing the application
-            glfwSetWindowShouldClose(window, GL_TRUE);
-        }
-        else if (key == GLFW_KEY_SPACE) {
-            // toggle the animation
-            stopMoving ^= true;
-        }
+    keyHandler.callback(key, scancode, action, mode);
+
+    if (keyHandler.is_key(GLFW_KEY_ESCAPE)) {
+        // When a user presses the escape key, we set the WindowShouldClose
+        // property to true, closing the application
+        glfwSetWindowShouldClose(window, GL_TRUE);
     }
+}
+
+
+void handle_keys()
+{
+    if (keyHandler.is_key(GLFW_KEY_SPACE)) {
+        // toggle the animation
+        animateCube ^= true;
+        keyHandler.reset_key(GLFW_KEY_SPACE);
+    }
+
+    GLfloat cameraSpeed = 0.05f;
+    if(keyHandler.is_up())
+        camera.move(Vector3f(0.0f, 0.0f, -cameraSpeed));
+    if(keyHandler.is_down())
+        camera.move(Vector3f(0.0f, 0.0f, cameraSpeed));
+    if(keyHandler.is_left())
+        camera.move(Vector3f(cameraSpeed, 0.0f, 0.0f));
+    if(keyHandler.is_right())
+        camera.move(Vector3f(-cameraSpeed, 0.0f, 0.0f));
 }

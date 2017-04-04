@@ -14,13 +14,16 @@ lib_LTLIBRARIES = libOpenGLCommon.la libCPPMisc.la
 #                that the library implements. 
 #######################################
 libOpenGLCommon_la_SOURCES = Shader.cpp \
-                             Texture.cpp
+                             Texture.cpp \
+                             Camera.cpp \
+                             KeyHandler.cpp
 
 libOpenGLCommon_la_LDFLAGS = -version-info 1:0:0
 
 libOpenGLCommon_la_LIBADD = -lGL -lGLEW -lglfw -lSOIL
 
-libOpenGLCommon_la_CPPFLAGS = -I$(top_srcdir)/include
+libOpenGLCommon_la_CPPFLAGS = -I$(top_srcdir)/include \
+                              -I/usr/include/eigen3
 
 #######################################
 # libCPPMisc options

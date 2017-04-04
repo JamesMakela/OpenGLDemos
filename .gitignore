@@ -72,3 +72,9 @@ Makefile.in
 /TextureTriangle/.libs
 /TextureTriangle/TextureTriangle
 
+/TransformTriangle/.libs
+/TransformTriangle/TransformTriangle
+
+/TransformCube/.libs
+/TransformCube/TransformCube
+

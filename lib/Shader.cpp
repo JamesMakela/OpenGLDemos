@@ -168,7 +168,7 @@ void Shader::CreateShaderProgram() {
 }
 
 
-void Shader::UseTexture(GLuint texture = 0, GLuint textureUnitIdx = 0)
+void Shader::UseTexture(GLuint texture, GLuint textureUnitIdx)
 {
     std::string uniformName = "ourTexture" + std::to_string(textureUnitIdx);
 
@@ -181,8 +181,7 @@ void Shader::UseTexture(GLuint texture = 0, GLuint textureUnitIdx = 0)
 }
 
 
-void Shader::UseTransform(const GLfloat *transform,
-                          GLuint transformIdx = 0)
+void Shader::UseTransform(const GLfloat *transform, GLuint transformIdx)
 {
     if (transform == nullptr) {
         cout << "ERROR::SHADER::USETRANSFORM::NULLPTR\n\t"
