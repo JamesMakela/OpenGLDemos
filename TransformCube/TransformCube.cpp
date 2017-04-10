@@ -57,7 +57,7 @@ void ConfigureGLFW();
 void report_error(int code, const char * description);
 void key_callback(GLFWwindow* window,
                   int key, int scancode, int action, int mode);
-void handle_keys();
+void handle_keys(GLfloat deltaTime);
 
 // set the camera as a global
 Camera camera;
@@ -315,13 +315,13 @@ int main(int argc, const char **argv)
     GLfloat prevTime = glfwGetTime();
     while(!glfwWindowShouldClose(window))
     {
-        // check input events(kbd, mouse, etc.)
-        glfwPollEvents();
-        handle_keys();
-
         // get the time elapsed since last iteration
         GLfloat deltaTime = glfwGetTime() - prevTime;
         prevTime += deltaTime;
+
+        // check input events(kbd, mouse, etc.)
+        glfwPollEvents();
+        handle_keys(deltaTime);
 
         if (animateCube) {
             // rotate the image at about 60 degrees/sec
@@ -428,7 +428,7 @@ void key_callback(GLFWwindow* window,
 }
 
 
-void handle_keys()
+void handle_keys(GLfloat deltaTime)
 {
     if (keyHandler.is_key(GLFW_KEY_SPACE)) {
         // toggle the animation
@@ -436,13 +436,26 @@ void handle_keys()
         keyHandler.reset_key(GLFW_KEY_SPACE);
     }
 
-    GLfloat cameraSpeed = 0.05f;
-    if(keyHandler.is_up())
-        camera.move(Vector3f(0.0f, 0.0f, -cameraSpeed));
-    if(keyHandler.is_down())
-        camera.move(Vector3f(0.0f, 0.0f, cameraSpeed));
-    if(keyHandler.is_left())
-        camera.move(Vector3f(cameraSpeed, 0.0f, 0.0f));
-    if(keyHandler.is_right())
-        camera.move(Vector3f(-cameraSpeed, 0.0f, 0.0f));
+    GLfloat deltaMovement = 1.0f * deltaTime;  // length of 1 cube per sec
+    GLfloat deltaRotation = 90.0f * deltaTime;  // 90 degrees per sec
+    if (keyHandler.is_key(GLFW_KEY_LEFT_SHIFT) ||
+            keyHandler.is_key(GLFW_KEY_RIGHT_SHIFT))
+    {
+        // rotate operations
+        if(keyHandler.is_left())
+            camera.rotate(Vector3f(deltaRotation, 0.0f, 0.0f));
+        if(keyHandler.is_right())
+            camera.rotate(Vector3f(-deltaRotation, 0.0f, 0.0f));
+    }
+    else {
+        // move operations
+        if(keyHandler.is_up())
+            camera.move(Vector3f(0.0f, 0.0f, -deltaMovement));
+        if(keyHandler.is_down())
+            camera.move(Vector3f(0.0f, 0.0f, deltaMovement));
+        if(keyHandler.is_left())
+            camera.move(Vector3f(deltaMovement, 0.0f, 0.0f));
+        if(keyHandler.is_right())
+            camera.move(Vector3f(-deltaMovement, 0.0f, 0.0f));
+    }
 }

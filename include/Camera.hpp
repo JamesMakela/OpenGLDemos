@@ -28,7 +28,11 @@
 
 using Eigen::Matrix4f;
 using Eigen::Matrix3f;
+using Eigen::Affine3f;
+
 using Eigen::Vector3f;
+using Eigen::Vector4f;
+using Eigen::AngleAxisf;
 
 #include "OGLCommon.hpp"
 
@@ -42,6 +46,8 @@ public:
 
     void move(const Vector3f& position,
               bool keepLookingAtTarget = false);
+
+    void rotate(const Vector3f& rotationXYZ);
 
     void setPerspective(GLfloat fovDegrees,
                         GLfloat width, GLfloat height,

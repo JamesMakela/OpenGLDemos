@@ -40,7 +40,6 @@ void Camera::lookAt()
     R.col(2) = (position - target).normalized();
     R.col(0) = up.cross(R.col(2)).normalized();
     R.col(1) = R.col(2).cross(R.col(0));
-    R.transposeInPlace();
 
     mView.topLeftCorner<3, 3>() = R;
     mView.topRightCorner<3, 1>() = -R * position;
@@ -53,6 +52,33 @@ void Camera::move(const Vector3f& position, bool keepLookingAtTarget)
         this->target += position;
 
     this->position += position;
+
+    lookAt();
+}
+
+
+void Camera::rotate(const Vector3f& YPR)
+{
+    GLfloat yaw = to_radians(YPR[0]);
+    GLfloat pitch = to_radians(YPR[1]);
+    GLfloat roll = to_radians(YPR[2]);
+
+    Vector4f newPosition(position.data());
+    newPosition[3] = 1.0f;
+    Vector4f newTarget(target.data());
+    newTarget[3] = 1.0f;
+
+    Affine3f xform;
+    xform.matrix() = mView;
+
+    // rotate camera position
+    xform *= AngleAxisf(roll, Vector3f::UnitZ())
+           * AngleAxisf(yaw, Vector3f::UnitY())
+           * AngleAxisf(pitch, Vector3f::UnitX());
+
+    newTarget -= xform.matrix() * newPosition;
+
+    target = newTarget.topRightCorner<3, 1>();
 
     lookAt();
 }
