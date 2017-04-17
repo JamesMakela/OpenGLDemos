@@ -47,6 +47,8 @@ public:
     void move(const Vector3f& position,
               bool keepLookingAtTarget = false);
 
+    void moveTarget(const Vector3f& position);
+
     void rotate(const Vector3f& rotationXYZ);
 
     void setPerspective(GLfloat fovDegrees,

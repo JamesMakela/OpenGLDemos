@@ -441,21 +441,27 @@ void handle_keys(GLfloat deltaTime)
     if (keyHandler.is_key(GLFW_KEY_LEFT_SHIFT) ||
             keyHandler.is_key(GLFW_KEY_RIGHT_SHIFT))
     {
-        // rotate operations
         if(keyHandler.is_left())
             camera.rotate(Vector3f(deltaRotation, 0.0f, 0.0f));
         if(keyHandler.is_right())
             camera.rotate(Vector3f(-deltaRotation, 0.0f, 0.0f));
     }
+    else if (keyHandler.is_key(GLFW_KEY_LEFT_CONTROL) ||
+                 keyHandler.is_key(GLFW_KEY_RIGHT_CONTROL))
+    {
+        if(keyHandler.is_left())
+            camera.moveTarget(Vector3f(-deltaMovement, 0.0f, 0.0f));
+        if(keyHandler.is_right())
+            camera.moveTarget(Vector3f(deltaMovement, 0.0f, 0.0f));
+    }
     else {
-        // move operations
         if(keyHandler.is_up())
             camera.move(Vector3f(0.0f, 0.0f, -deltaMovement));
         if(keyHandler.is_down())
             camera.move(Vector3f(0.0f, 0.0f, deltaMovement));
         if(keyHandler.is_left())
-            camera.move(Vector3f(deltaMovement, 0.0f, 0.0f));
-        if(keyHandler.is_right())
             camera.move(Vector3f(-deltaMovement, 0.0f, 0.0f));
+        if(keyHandler.is_right())
+            camera.move(Vector3f(deltaMovement, 0.0f, 0.0f));
     }
 }

@@ -34,52 +34,60 @@ void Camera::lookAt(const Vector3f& position,
 
 void Camera::lookAt()
 {
-    mView.setIdentity();
+   Vector3f f = (target - position).normalized();
+   Vector3f u = up.normalized();
+   Vector3f s = f.cross(u).normalized();
+   u = s.cross(f);
 
-    Matrix3f R;
-    R.col(2) = (position - target).normalized();
-    R.col(0) = up.cross(R.col(2)).normalized();
-    R.col(1) = R.col(2).cross(R.col(0));
-
-    mView.topLeftCorner<3, 3>() = R;
-    mView.topRightCorner<3, 1>() = -R * position;
+   mView << s.x(), s.y(), s.z(), -s.dot(position),
+            u.x(), u.y(), u.z(), -u.dot(position),
+            -f.x(), -f.y(), -f.z(), f.dot(position),
+            0, 0, 0, 1;
 }
 
 
-void Camera::move(const Vector3f& position, bool keepLookingAtTarget)
+// move the camera to a new position.
+void Camera::move(const Vector3f& newPosition, bool keepLookingAtTarget)
 {
     if (keepLookingAtTarget == false)
-        this->target += position;
+        target += newPosition;
 
-    this->position += position;
-
+    position += newPosition;
     lookAt();
 }
 
 
+// move the camera target.  Position stays the same
+void Camera::moveTarget(const Vector3f& newTarget)
+{
+    target += newTarget;
+    lookAt();
+}
+
+
+// rotate the camera.  Position stays the same
 void Camera::rotate(const Vector3f& YPR)
 {
     GLfloat yaw = to_radians(YPR[0]);
     GLfloat pitch = to_radians(YPR[1]);
     GLfloat roll = to_radians(YPR[2]);
 
-    Vector4f newPosition(position.data());
-    newPosition[3] = 1.0f;
-    Vector4f newTarget(target.data());
+    Vector4f targetDiff, newTarget;
+    newTarget.topLeftCorner<3, 1>() = position - target;
     newTarget[3] = 1.0f;
 
     Affine3f xform;
-    xform.matrix() = mView;
+    xform.setIdentity();
 
-    // rotate camera position
+    targetDiff = xform.matrix() * newTarget;
+
     xform *= AngleAxisf(roll, Vector3f::UnitZ())
            * AngleAxisf(yaw, Vector3f::UnitY())
            * AngleAxisf(pitch, Vector3f::UnitX());
 
-    newTarget -= xform.matrix() * newPosition;
+    targetDiff -= xform.matrix() * newTarget;
 
-    target = newTarget.topRightCorner<3, 1>();
-
+    target += targetDiff.topLeftCorner<3, 1>();
     lookAt();
 }
 
