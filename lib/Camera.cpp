@@ -34,14 +34,14 @@ void Camera::lookAt(const Vector3f& position,
 
 void Camera::lookAt()
 {
-   Vector3f f = (target - position).normalized();
-   Vector3f u = up.normalized();
-   Vector3f s = f.cross(u).normalized();
-   u = s.cross(f);
+   Vector3f D = (position - target).normalized();
+   Vector3f U = up.normalized();
+   Vector3f R = U.cross(D).normalized();
+   U = D.cross(R);
 
-   mView << s.x(), s.y(), s.z(), -s.dot(position),
-            u.x(), u.y(), u.z(), -u.dot(position),
-            -f.x(), -f.y(), -f.z(), f.dot(position),
+   mView << R.x(), R.y(), R.z(), -R.dot(position),
+            U.x(), U.y(), U.z(), -U.dot(position),
+            D.x(), D.y(), D.z(), -D.dot(position),
             0, 0, 0, 1;
 }
 
@@ -89,6 +89,27 @@ void Camera::rotate(const Vector3f& YPR)
 
     target += targetDiff.topLeftCorner<3, 1>();
     lookAt();
+}
+
+
+// move the camera sideways.  distance can be positive or negative
+void Camera::strafe(const GLfloat distance)
+{
+    Vector3f D = (position - target).normalized();
+    Vector3f U = up.normalized();
+    Vector3f R = U.cross(D).normalized();
+
+    move(R * distance);
+}
+
+
+// move the camera straight towards target.
+// distance can be positive or negative
+void Camera::moveStraight(const GLfloat distance)
+{
+    Vector3f D = (position - target).normalized();
+
+    move(D * distance);
 }
 
 

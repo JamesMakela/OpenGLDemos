@@ -456,12 +456,12 @@ void handle_keys(GLfloat deltaTime)
     }
     else {
         if(keyHandler.is_up())
-            camera.move(Vector3f(0.0f, 0.0f, -deltaMovement));
+            camera.moveStraight(-deltaMovement);
         if(keyHandler.is_down())
-            camera.move(Vector3f(0.0f, 0.0f, deltaMovement));
+            camera.moveStraight(deltaMovement);
         if(keyHandler.is_left())
-            camera.move(Vector3f(-deltaMovement, 0.0f, 0.0f));
+            camera.strafe(-deltaMovement);
         if(keyHandler.is_right())
-            camera.move(Vector3f(deltaMovement, 0.0f, 0.0f));
+            camera.strafe(deltaMovement);
     }
 }

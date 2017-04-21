@@ -51,6 +51,9 @@ public:
 
     void rotate(const Vector3f& rotationXYZ);
 
+    void strafe(const GLfloat distance);
+    void moveStraight(const GLfloat distance);
+
     void setPerspective(GLfloat fovDegrees,
                         GLfloat width, GLfloat height,
                         GLfloat near, GLfloat far);
