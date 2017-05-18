@@ -34,7 +34,7 @@ public:
     bool is_right();
 
 private:
-    bool keys[1024];
+    bool keys[1024] {};  // (C++11) elements should get initialised to false
 };
 
 

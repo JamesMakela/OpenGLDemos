@@ -32,32 +32,123 @@ void Camera::lookAt(const Vector3f& position,
 }
 
 
-void Camera::lookAt()
+void Camera::lookAt(bool setOrientation)
 {
-   Vector3f D = (position - target).normalized();
-   Vector3f U = up.normalized();
-   Vector3f R = U.cross(D).normalized();
-   U = D.cross(R);
+    Vector3f D = (position - target).normalized();
+    Vector3f U = up.normalized();
+    Vector3f R = U.cross(D).normalized();
+    U = D.cross(R);
 
-   mView << R.x(), R.y(), R.z(), -R.dot(position),
-            U.x(), U.y(), U.z(), -U.dot(position),
-            D.x(), D.y(), D.z(), -D.dot(position),
-            0, 0, 0, 1;
+    Matrix3f rotMx;
+    rotMx.col(0) = R;
+    rotMx.col(1) = U;
+    rotMx.col(2) = D;
+    rotMx.transposeInPlace();
+
+    mView.setIdentity();
+    mView.topLeftCorner<3,3>() = rotMx;
+    mView.topRightCorner<3,1>() = -rotMx * position;
+
+    if (setOrientation)
+        SetOrientation(rotMx);
+}
+
+
+// Based on the online document:
+//   "Computing Euler Angles from a Rotation Matrix"
+//   by Gregory G. Slabough
+// The original algorithm computes two possible sequences of rotations
+// depending on the angle inputs.  But they both result in the same
+// orientation of the object.
+void Camera::SetOrientation(const Matrix3f& rotMx)
+{
+    GLfloat vecLength;
+    GLfloat psi, psi1, psi2;
+    GLfloat theta, theta1, theta2;
+    GLfloat phi, phi1, phi2;
+
+    if (rotMx(2, 0) == -1.0) {
+        phi = 0.0;  // could be anything
+        theta = pi() / 2.0;
+        psi = phi + atan2(rotMx(0, 1), rotMx(0, 2));
+    }
+    else if (rotMx(2, 0) == 1.0) {
+        phi = 0.0;  // could be anything
+        theta = -pi() / 2.0;
+        psi = -phi + atan2(-rotMx(0, 1), -rotMx(0, 2));
+    }
+    else {
+        theta1 = -asin(rotMx(2, 0));
+        theta2 = pi() - theta1;
+
+        psi1 = atan2(rotMx(2, 1) / cos(theta1),
+                     rotMx(2, 2) / cos(theta1));
+        psi2 = atan2(rotMx(2, 1) / cos(theta2),
+                     rotMx(2, 2) / cos(theta2));
+
+        phi1 = atan2(rotMx(1, 0) / cos(theta1),
+                     rotMx(0, 0) / cos(theta1));
+        phi2 = atan2(rotMx(1, 0) / cos(theta2),
+                     rotMx(0, 0) / cos(theta2));
+
+        // we have two possible choices for an angle set
+        // and we probably want to choose the one with the smallest
+        // angular path.
+        vecLength = sqrt((psi1 * psi1) + (theta1 * theta1) + (phi1 * phi1));
+        vecLength -= sqrt((psi2 * psi2) + (theta2 * theta2) + (phi2 * phi2));
+
+        if (vecLength <= 0.0) {
+            // PYR1 is the smallest
+            psi = psi1;
+            theta = theta1;
+            phi = phi1;
+        }
+        else {
+            // PYR2 is the smallest
+            psi = psi2;
+            theta = theta2;
+            phi = phi2;
+        }
+
+    }
+
+    PYR[0] = psi;
+    PYR[1] = theta;
+    PYR[2] = phi;
+}
+
+
+// Primitive function to cumulatively apply angles to our class.
+// - deltaPYR contains angles in degrees.
+// - Checks the range of values and limits them to one revolution.
+void Camera::applyAngles(const Vector3f& deltaPYR)
+{
+    PYR += to_radians(deltaPYR);
+
+    PYR[0] -= floor(PYR[0] / (pi() * 2.0)) * pi() * 2.0;
+    PYR[1] -= floor(PYR[1] / (pi() * 2.0)) * pi() * 2.0;
+    PYR[2] -= floor(PYR[2] / (pi() * 2.0)) * pi() * 2.0;
 }
 
 
 // move the camera to a new position.
 void Camera::move(const Vector3f& newPosition, bool keepLookingAtTarget)
 {
-    if (keepLookingAtTarget == false)
-        target += newPosition;
-
     position += newPosition;
-    lookAt();
+
+    if (keepLookingAtTarget)
+        lookAt();
+    else {
+        // Target tracks with position.
+        // Rotation and orientation don't need to be updated.
+        target += newPosition;
+        lookAt(false);
+    }
 }
 
 
-// move the camera target.  Position stays the same
+// move the camera target.
+// - rotation and orientation need to be updated
 void Camera::moveTarget(const Vector3f& newTarget)
 {
     target += newTarget;
@@ -65,30 +156,39 @@ void Camera::moveTarget(const Vector3f& newTarget)
 }
 
 
-// rotate the camera.  Position stays the same
-void Camera::rotate(const Vector3f& YPR)
+// Rotate the camera.
+// - Position stays the same.
+// - deltaPYR contains Euler angles in degrees.
+void Camera::rotate(const Vector3f& deltaPYR)
 {
-    GLfloat yaw = to_radians(YPR[0]);
-    GLfloat pitch = to_radians(YPR[1]);
-    GLfloat roll = to_radians(YPR[2]);
+    applyAngles(deltaPYR);
 
-    Vector4f targetDiff, newTarget;
-    newTarget.topLeftCorner<3, 1>() = position - target;
-    newTarget[3] = 1.0f;
+    GLfloat pitch = PYR[0];
+    GLfloat yaw = PYR[1];
+    GLfloat roll = PYR[2];
 
-    Affine3f xform;
-    xform.setIdentity();
+    Matrix3f rotMx;
 
-    targetDiff = xform.matrix() * newTarget;
+    // first get the current positional angle matrix
+    Vector3f D = (target - position).normalized();
+    Vector3f U = up.normalized();
+    Vector3f R = U.cross(D).normalized();
+    U = D.cross(R);
 
-    xform *= AngleAxisf(roll, Vector3f::UnitZ())
-           * AngleAxisf(yaw, Vector3f::UnitY())
-           * AngleAxisf(pitch, Vector3f::UnitX());
+    rotMx.col(0) = R;
+    rotMx.col(1) = U;
+    rotMx.col(2) = D;
+    rotMx.transposeInPlace();
 
-    targetDiff -= xform.matrix() * newTarget;
+    target = rotMx * (target - position);
 
-    target += targetDiff.topLeftCorner<3, 1>();
-    lookAt();
+    // next get the PYR angle matrix
+    rotMx = AngleAxisf(pitch, Vector3f::UnitX())
+          * AngleAxisf(yaw,  Vector3f::UnitY())
+          * AngleAxisf(roll, Vector3f::UnitZ());
+    target = position - rotMx.inverse() * target;
+
+    lookAt(false);
 }
 
 

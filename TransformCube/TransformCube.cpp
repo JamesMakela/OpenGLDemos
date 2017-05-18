@@ -39,6 +39,7 @@ using Eigen::Affine3f;
 using Eigen::Translation3f;
 using Eigen::AngleAxisf;
 using Eigen::Vector3f;
+using Eigen::Vector2f;
 using Eigen::Scaling;
 
 // Simple OpenGL Image Library
@@ -50,6 +51,7 @@ using Eigen::Scaling;
 #include "Texture.hpp"
 #include "Camera.hpp"
 #include "KeyHandler.hpp"
+#include "MouseHandler.hpp"
 
 // forward declarations defined after main()
 // I like organizing my functions in a top-down fashion
@@ -57,13 +59,15 @@ void ConfigureGLFW();
 void report_error(int code, const char * description);
 void key_callback(GLFWwindow* window,
                   int key, int scancode, int action, int mode);
-void handle_keys(GLfloat deltaTime);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void handle_events(GLfloat deltaTime);
 
 // set the camera as a global
 Camera camera;
 
 // set the key handler as a global
 KeyHandler keyHandler;
+MouseHandler mouseHandler;
 
 // quick & dirty flag to tell the application whether to animate or not
 bool animateCube = true;
@@ -148,7 +152,9 @@ int main(int argc, const char **argv)
 
     glEnable(GL_DEPTH_TEST);  // for z-buffer clipping
 
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     // Here is where we build and compile our shader program
     Shader ourShader(vertexFile.c_str(), fragmentFile.c_str());
@@ -321,7 +327,7 @@ int main(int argc, const char **argv)
 
         // check input events(kbd, mouse, etc.)
         glfwPollEvents();
-        handle_keys(deltaTime);
+        handle_events(deltaTime);
 
         if (animateCube) {
             // rotate the image at about 60 degrees/sec
@@ -428,7 +434,13 @@ void key_callback(GLFWwindow* window,
 }
 
 
-void handle_keys(GLfloat deltaTime)
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    mouseHandler.position_callback(Vector2f(xpos, ypos));
+}
+
+
+void handle_events(GLfloat deltaTime)
 {
     if (keyHandler.is_key(GLFW_KEY_SPACE)) {
         // toggle the animation
@@ -438,17 +450,35 @@ void handle_keys(GLfloat deltaTime)
 
     GLfloat deltaMovement = 1.0f * deltaTime;  // length of 1 cube per sec
     GLfloat deltaRotation = 90.0f * deltaTime;  // 90 degrees per sec
+
     if (keyHandler.is_key(GLFW_KEY_LEFT_SHIFT) ||
             keyHandler.is_key(GLFW_KEY_RIGHT_SHIFT))
     {
+        // shift key selects left/right/up/down rotation
         if(keyHandler.is_left())
-            camera.rotate(Vector3f(deltaRotation, 0.0f, 0.0f));
+            camera.rotate(Vector3f(0.0f, deltaRotation, 0.0f));
         if(keyHandler.is_right())
+            camera.rotate(Vector3f(0.0f, -deltaRotation, 0.0f));
+        if(keyHandler.is_up())
+            camera.rotate(Vector3f(deltaRotation, 0.0f, 0.0f));
+        if(keyHandler.is_down())
             camera.rotate(Vector3f(-deltaRotation, 0.0f, 0.0f));
     }
     else if (keyHandler.is_key(GLFW_KEY_LEFT_CONTROL) ||
                  keyHandler.is_key(GLFW_KEY_RIGHT_CONTROL))
     {
+        // control key selects left/right roll angle
+        if(keyHandler.is_left())
+            camera.rotate(Vector3f(0.0f, 0.0f, deltaRotation));
+        if(keyHandler.is_right())
+            camera.rotate(Vector3f(0.0f, 0.0f, -deltaRotation));
+    }
+    else if (keyHandler.is_key(GLFW_KEY_LEFT_ALT) ||
+                 keyHandler.is_key(GLFW_KEY_RIGHT_ALT))
+    {
+        // basically this moves the camera target left or right
+        // on the X axis.  This was mostly early diagnostic stuff,
+        // and probably won't be used that much.
         if(keyHandler.is_left())
             camera.moveTarget(Vector3f(-deltaMovement, 0.0f, 0.0f));
         if(keyHandler.is_right())
@@ -463,5 +493,19 @@ void handle_keys(GLfloat deltaTime)
             camera.strafe(-deltaMovement);
         if(keyHandler.is_right())
             camera.strafe(deltaMovement);
+    }
+
+    Vector2f deltaPosition;
+    deltaPosition = mouseHandler.pop_position();
+    if (!deltaPosition.isZero()) {
+        // X mouse movement adjusts the Yaw.
+        // Y mouse movement adjusts the Pitch.
+        // So the vector we build will be (Y, X, 0.0)
+        // The rate at which we rotate, seems to feel about right when its
+        // 3 times the value of the coords.  We'll go with that for now.
+        Vector3f newOrientation;
+        newOrientation.topLeftCorner<2,1>() = (deltaPosition.reverse() *
+                                               deltaTime * 3.0);
+        camera.rotate(newOrientation);
     }
 }

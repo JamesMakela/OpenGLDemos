@@ -42,14 +42,16 @@ public:
     void lookAt(const Vector3f& position,
                 const Vector3f& target,
                 const Vector3f& up);
-    void lookAt();
+    void lookAt(bool setOrientation = true);
+
+    void SetOrientation(const Matrix3f& rotMx);
+    void applyAngles(const Vector3f& YPR);
 
     void move(const Vector3f& position,
               bool keepLookingAtTarget = false);
-
     void moveTarget(const Vector3f& position);
 
-    void rotate(const Vector3f& rotationXYZ);
+    void rotate(const Vector3f& YPR);
 
     void strafe(const GLfloat distance);
     void moveStraight(const GLfloat distance);
@@ -66,6 +68,7 @@ private:
     Vector3f position;
     Vector3f target;
     Vector3f up;
+    Vector3f PYR;  // Euler angle orientation (pitch, yaw, roll)
 
     GLfloat fovDegrees;
     GLfloat width; GLfloat height;

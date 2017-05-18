@@ -5,4 +5,5 @@ include_HEADERS = CmdOptionParser.hpp \
                   Shader.hpp \
                   Texture.hpp \
                   Camera.hpp \
-                  KeyHandler.hpp
+                  KeyHandler.hpp \
+                  MouseHandler.hpp

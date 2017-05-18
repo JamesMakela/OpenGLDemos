@@ -16,7 +16,8 @@ lib_LTLIBRARIES = libOpenGLCommon.la libCPPMisc.la
 libOpenGLCommon_la_SOURCES = Shader.cpp \
                              Texture.cpp \
                              Camera.cpp \
-                             KeyHandler.cpp
+                             KeyHandler.cpp \
+                             MouseHandler.cpp
 
 libOpenGLCommon_la_LDFLAGS = -version-info 1:0:0
 
