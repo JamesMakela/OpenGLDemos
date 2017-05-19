@@ -59,6 +59,7 @@ public:
     void setPerspective(GLfloat fovDegrees,
                         GLfloat width, GLfloat height,
                         GLfloat near, GLfloat far);
+    void setFOV(GLfloat fovDegrees);
     void setPerspective();
 
     Matrix4f View() {return this->mView; }

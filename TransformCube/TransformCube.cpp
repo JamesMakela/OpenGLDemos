@@ -57,9 +57,14 @@ using Eigen::Scaling;
 // I like organizing my functions in a top-down fashion
 void ConfigureGLFW();
 void report_error(int code, const char * description);
+
 void key_callback(GLFWwindow* window,
                   int key, int scancode, int action, int mode);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_position_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_button_callback(GLFWwindow* window,
+                           int button, int action, int mods);
+void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 void handle_events(GLfloat deltaTime);
 
 // set the camera as a global
@@ -154,7 +159,9 @@ int main(int argc, const char **argv)
 
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetKeyCallback(window, key_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCursorPosCallback(window, mouse_position_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, mouse_scroll_callback);
 
     // Here is where we build and compile our shader program
     Shader ourShader(vertexFile.c_str(), fragmentFile.c_str());
@@ -434,9 +441,22 @@ void key_callback(GLFWwindow* window,
 }
 
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     mouseHandler.position_callback(Vector2f(xpos, ypos));
+}
+
+
+void mouse_button_callback(GLFWwindow* window,
+                           int button, int action, int mods)
+{
+    mouseHandler.button_callback(button, action, mods);
+}
+
+
+void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    mouseHandler.scroll_callback(Vector2f(xoffset, yoffset));
 }
 
 
@@ -495,17 +515,29 @@ void handle_events(GLfloat deltaTime)
             camera.strafe(deltaMovement);
     }
 
-    Vector2f deltaPosition;
-    deltaPosition = mouseHandler.pop_position();
-    if (!deltaPosition.isZero()) {
-        // X mouse movement adjusts the Yaw.
-        // Y mouse movement adjusts the Pitch.
-        // So the vector we build will be (Y, X, 0.0)
-        // The rate at which we rotate, seems to feel about right when its
-        // 3 times the value of the coords.  We'll go with that for now.
-        Vector3f newOrientation;
-        newOrientation.topLeftCorner<2,1>() = (deltaPosition.reverse() *
-                                               deltaTime * 3.0);
-        camera.rotate(newOrientation);
+    Vector2f deltaMousePosition, deltaScroll;
+    deltaMousePosition = mouseHandler.pop_position();
+    deltaScroll = mouseHandler.pop_scroll();
+
+    if (mouseHandler.is_button_left()) {
+        if (!deltaMousePosition.isZero()) {
+            // Adjust the camera lateral movement.
+            camera.strafe(deltaMousePosition[0] * deltaMovement * 0.5);
+            camera.moveStraight(deltaMousePosition[1] * deltaMovement * 0.5);
+        }
+    }
+    else if (mouseHandler.is_button_right()) {
+        if (!deltaMousePosition.isZero()) {
+            // Adjust the camera Yaw and Pitch.
+            // So the vector we build will be (Y, X, 0.0)
+            Vector3f newOrientation;
+            newOrientation.topLeftCorner<2,1>() = (deltaMousePosition.reverse() *
+                                                   deltaTime * 3.0);
+            camera.rotate(newOrientation);
+        }
+    }
+
+    if (!deltaScroll.isZero()) {
+        camera.setFOV(deltaScroll.y());
     }
 }

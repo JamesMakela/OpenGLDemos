@@ -35,10 +35,12 @@ bool KeyHandler::is_key(int keycode)
         return false;
 }
 
+
 void KeyHandler::reset_key(int keycode)
 {
     keys[keycode] = false;
 }
+
 
 bool KeyHandler::is_up()
 {

@@ -229,6 +229,17 @@ void Camera::setPerspective(GLfloat fovDegrees,
 }
 
 
+// Change the field of view
+// - assumes the perspective has been initialized
+void Camera::setFOV(GLfloat fovDegrees)
+{
+    this->fovDegrees -= fovDegrees;
+    this->fovDegrees = std::max(std::min(this->fovDegrees, 45.0f), 1.0f);
+
+    setPerspective();
+}
+
+
 void Camera::setPerspective()
 {
     // Define our projection transformation

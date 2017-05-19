@@ -25,14 +25,27 @@ class MouseHandler
 {
 public:
     void position_callback(const Vector2f& pos);
+    void button_callback(int button, int action, int mods);
+    void scroll_callback(const Vector2f& scrollPos);
 
     Vector2f pop_position();
+    Vector2f pop_scroll();
+
+    bool is_button(int buttoncode);
+    void reset_button(int buttoncode);
+
+    bool is_button_left();
+    bool is_button_middle();
+    bool is_button_right();
 
 private:
-    bool firstTime = true;
+    bool firstTimePosition = true;
+    Vector2f oldPosition;
+    Vector2f deltaPosition;
 
-    Vector2f old;
-    Vector2f delta;
+    Vector2f deltaScroll;
+
+    bool buttons[8] {};  // (C++11) elements should get initialised to false
 };
 
 
