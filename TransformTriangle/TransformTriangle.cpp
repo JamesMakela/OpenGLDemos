@@ -1,12 +1,12 @@
 //============================================================================
-// Name        : TextureTriangle.cpp
+// Name        : TransformTriangle.cpp
 // Author      : James L. Makela
 // Version     : 0.0.1
 // Copyright   : LGPL v3.0
 // Description : OpenGL triangle in C++ 11 for Legacy OpenGL 2.1.
 //               This is another spinoff of the simple triangle demo.
 //               What we are now doing is exploring the methods for
-//               applying textures to our shaders.
+//               applying transformations to our shaders.
 //============================================================================
 
 #include <iostream>

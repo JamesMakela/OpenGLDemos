@@ -1,12 +1,13 @@
 //============================================================================
-// Name        : TextureTriangle.cpp
+// Name        : TransformCube.cpp
 // Author      : James L. Makela
 // Version     : 0.0.1
 // Copyright   : LGPL v3.0
-// Description : OpenGL triangle in C++ 11 for Legacy OpenGL 2.1.
+// Description : OpenGL Cube with transformations in C++ 11.
 //               This is another spinoff of the simple triangle demo.
-//               What we are now doing is exploring the methods for
-//               applying textures to our shaders.
+//               What we are now doing is generating a cube with textures
+//               and applying transformations.  For this we have setup a
+//               camera class.
 //============================================================================
 
 #include <iostream>
