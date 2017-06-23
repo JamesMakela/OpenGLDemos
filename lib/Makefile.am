@@ -17,7 +17,8 @@ libOpenGLCommon_la_SOURCES = Shader.cpp \
                              Texture.cpp \
                              Camera.cpp \
                              KeyHandler.cpp \
-                             MouseHandler.cpp
+                             MouseHandler.cpp \
+                             JoystickHandler.cpp
 
 libOpenGLCommon_la_LDFLAGS = -version-info 1:0:0
 
@@ -29,9 +30,9 @@ libOpenGLCommon_la_CPPFLAGS = -I$(top_srcdir)/include \
 #######################################
 # libCPPMisc options
 #######################################
-libCPPMisc_la_SOURCES = CmdOptionParser.cpp
+libCPPMisc_la_SOURCES = CmdOptionParser.cpp \
+                        SpookyV2.cpp
 
 libCPPMisc_la_LDFLAGS = -version-info 1:0:0
 
 libCPPMisc_la_CPPFLAGS = -I$(top_srcdir)/include
-

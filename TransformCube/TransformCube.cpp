@@ -53,6 +53,7 @@ using Eigen::Scaling;
 #include "Camera.hpp"
 #include "KeyHandler.hpp"
 #include "MouseHandler.hpp"
+#include "JoystickHandler.hpp"
 
 // forward declarations defined after main()
 // I like organizing my functions in a top-down fashion
@@ -65,6 +66,7 @@ void mouse_position_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window,
                            int button, int action, int mods);
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void joystick_callback(int joy, int event);
 
 void handle_events(GLfloat deltaTime);
 
@@ -74,6 +76,7 @@ Camera camera;
 // set the key handler as a global
 KeyHandler keyHandler;
 MouseHandler mouseHandler;
+JoystickHandler joystickHandler;
 
 // quick & dirty flag to tell the application whether to animate or not
 bool animateCube = true;
@@ -163,6 +166,8 @@ int main(int argc, const char **argv)
     glfwSetCursorPosCallback(window, mouse_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, mouse_scroll_callback);
+    glfwSetJoystickCallback(joystick_callback);
+    joystickHandler.poll_connected();
 
     // Here is where we build and compile our shader program
     Shader ourShader(vertexFile.c_str(), fragmentFile.c_str());
@@ -458,6 +463,12 @@ void mouse_button_callback(GLFWwindow* window,
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     mouseHandler.scroll_callback(Vector2f(xoffset, yoffset));
+}
+
+
+void joystick_callback(int joy, int event)
+{
+    joystickHandler.connection_callback(joy, event);
 }
 
 
