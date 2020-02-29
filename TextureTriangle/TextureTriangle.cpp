@@ -46,8 +46,8 @@ int main(int argc, const char **argv)
 
     std::string vertexFile = "glsl/TextureVertexShader.glsl";
     std::string fragmentFile = "glsl/TextureFragmentShader.glsl";
-    std::string textureFile1 = "img/container.jpg";
-    std::string textureFile2 = "img/awesomeface.png";
+    std::string textureFile1 = "image/container.jpg";
+    std::string textureFile2 = "image/awesomeface.png";
 
     const std::string &filePath = options.getCmdOption("-p");
     if (!filePath.empty()) {

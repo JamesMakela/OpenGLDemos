@@ -1,12 +1,12 @@
-#if __VERSION__ >= 140
-    in vec3 position;
-    in vec3 vertex_color;
-    out vec3 color;
-#else
-    attribute vec3 position;
-    attribute vec3 vertex_color;
-    varying vec3 color;
+#version 300 es
+
+#ifdef GL_ES
+precision mediump float;
 #endif
+
+in vec3 position;
+in vec3 vertex_color;
+out vec3 color;
 
 void main() {
     color = vertex_color;

@@ -1,14 +1,12 @@
-#if __VERSION__ >= 140
-    in vec3 color;
-    varying out vec4 out_color;
-#else
-    attribute vec3 color;
+#version 300 es
+
+#ifdef GL_ES
+precision mediump float;
 #endif
 
+in vec3 color;
+out vec4 out_color;
+
 void main() {
-#if __VERSION__ >= 140
     out_color = vec4(color, 1.0f);
-#else
-    gl_FragColor = vec4(color, 1.0);
-#endif
 }
