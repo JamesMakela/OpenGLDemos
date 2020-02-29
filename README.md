@@ -47,3 +47,22 @@ libglm-dev/stable,now 0.9.9.3-2 all [installed]
 libsoil-dev/stable,now 1.07~20080707.dfsg-4 armhf [installed]
 ```
 
+If one or more libraries are missing, you will need to `sudo apt install` them.
+
+Next is the part where we build our configuration to tailor it to your own environment.  Run the command:
+
+```
+$ aclocal && autoconf && automake
+```
+
+Next, we compile our project.  Run the command:
+
+```
+$ make all
+```
+
+At this point, if nothing has gone wrong, you should be able to run the demo programs. Test it out from the base folder of the project:
+
+```
+$ BetterTriangle/BetterTriangle -p data
+```
