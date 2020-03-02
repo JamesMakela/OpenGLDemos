@@ -53,6 +53,9 @@ Next is the part where we build our configuration to tailor it to your own envir
 
 ```
 $ libtoolize && aclocal && autoconf && automake --add-missing
+...
+$ ./configure
+...
 ```
 
 Next, we compile our project.  Run the command:
