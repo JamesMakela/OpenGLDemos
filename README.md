@@ -52,7 +52,7 @@ If one or more libraries are missing, you will need to `sudo apt install` them.
 Next is the part where we build our configuration to tailor it to your own environment.  Run the command:
 
 ```
-$ aclocal && autoconf && automake
+$ libtoolize && aclocal && autoconf && automake --add-missing
 ```
 
 Next, we compile our project.  Run the command:
